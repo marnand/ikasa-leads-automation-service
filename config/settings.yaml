@@ -1,0 +1,29 @@
+apis:
+  cnpja:
+    base_url: "https://api.cnpja.com"
+    token: ${TOKEN_CNPJA}
+    timeout: 30
+    
+  crm_4c:
+    base_url: "https://api.4c.com.br"
+    api_key: ${API_KEY_4C}
+    timeout: 30
+    
+  gclick:
+    base_url: "https://api.gclick.com.br"
+    token: ${TOKEN_GCLICK}
+    timeout: 30
+
+database:
+  type: "sqlite"
+  path: "database/leads.db"
+
+logging:
+  level: "INFO"
+  file: "logs/automation.log"
+  max_bytes: 10485760  # 10MB
+  backup_count: 5
+
+scheduler:
+  run_hour: "08"      # Executar às 8h
+  run_minute: "00"    # Aos 00 minutos

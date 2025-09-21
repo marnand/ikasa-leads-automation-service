@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  ikasa-leads-automation:
+    build: .
+    container_name: ikasa-leads-automation
+    restart: "no"  # Não reiniciar automaticamente após execução
+    environment:
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+      # Carregar variáveis de ambiente do arquivo .env
+      - TOKEN_CNPJA=${TOKEN_CNPJA}
+      - API_KEY_4C=${API_KEY_4C}
+      - TOKEN_GCLICK=${TOKEN_GCLICK}
+    env_file:
+      - .env
+    volumes:
+      # Persistir banco de dados
+      - ./database:/app/database
+      # Persistir logs
+      - ./logs:/app/logs
+      # Montar configuração (para facilitar edição)
+      - ./config:/app/config
+    networks:
+      - ikasa-network
+    # Executar apenas uma vez por dia às 8h (usando cron-like schedule)
+    # Para execução manual, comente a linha abaixo
+    command: ["python", "src/main.py"]
+
+  # Scheduler para execução agendada com cron
+  scheduler:
+    image: mcuadros/ofelia:latest
+    container_name: ikasa-scheduler
+    depends_on:
+      - ikasa-leads-automation
+    command: daemon --docker
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      # Executar todos os dias às 8:00
+      ofelia.job-run.ikasa-leads.schedule: "0 0 8 * * *"
+      ofelia.job-run.ikasa-leads.container: "ikasa-leads-automation"
+      ofelia.job-run.ikasa-leads.command: "python src/main.py"
+
+networks:
+  ikasa-network:
+    driver: bridge

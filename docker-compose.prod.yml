@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  ikasa-leads-automation:
+    build: .
+    container_name: ikasa-leads-automation-prod
+    restart: "no"  # Não reiniciar automaticamente após execução
+    environment:
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+      - ENV=production
+      # Variáveis de ambiente para APIs
+      - TOKEN_CNPJA=${TOKEN_CNPJA}
+      - API_KEY_4C=${API_KEY_4C}
+      - TOKEN_GCLICK=${TOKEN_GCLICK}
+    env_file:
+      - .env
+    volumes:
+      - ./database:/app/database
+      - ./logs:/app/logs
+      - ./config:/app/config:ro  # Read-only em produção
+    networks:
+      - ikasa-network
+    # Configurações de recursos
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+    # Health check
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Scheduler para execução automática
+  scheduler:
+    image: mcuadros/ofelia:latest
+    container_name: ikasa-scheduler-prod
+    restart: always
+    depends_on:
+      - ikasa-leads-automation
+    command: daemon --docker
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      # Executar todos os dias às 8:00
+      ofelia.job-run.ikasa-leads.schedule: "0 0 8 * * *"
+      ofelia.job-run.ikasa-leads.container: "ikasa-leads-automation-prod"
+      ofelia.job-run.ikasa-leads.command: "python src/main.py"
+    networks:
+      - ikasa-network
+
+networks:
+  ikasa-network:
+    driver: bridge

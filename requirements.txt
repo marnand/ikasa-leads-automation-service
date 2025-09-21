@@ -1,0 +1,26 @@
+# Framework web e HTTP
+aiohttp==3.9.1
+requests==2.31.0
+
+# Configuração e YAML
+PyYAML==6.0.1
+python-decouple==3.8
+
+# Logs e utilitários
+loguru==0.7.2
+python-dateutil==2.8.2
+
+# Validação de dados
+pydantic==2.5.2
+
+# Testes
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-mock==3.12.0
+
+# Monitoramento (opcional)
+psutil==5.9.6
+
+# Formatação e linting (dev)
+black==23.11.0
+flake8==6.1.0
